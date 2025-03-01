@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 chrono = "0.4.40"
+hostname = "0.4.0"
 jay-config = "1.7.0"
 
 [lib]

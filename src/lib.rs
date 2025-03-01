@@ -1,19 +1,15 @@
+use chrono::{format::StrftimeItems, Local};
 use jay_config::{
-    {config, get_workspace, quit, reload, switch_to_vt},
     exec::Command,
-    input::{get_default_seat, FocusFollowsMouseMode},
+    input::{get_default_seat, input_devices, FocusFollowsMouseMode, InputDevice},
     keyboard::mods::{Modifiers, ALT, CTRL, MOD4, SHIFT},
     keyboard::{parse_keymap, syms::*},
     status::set_status,
     timer::{duration_until_wall_clock_is_multiple_of, get_timer},
-    video::{on_graphics_initialized, set_gfx_api}
+    video::{on_graphics_initialized, set_gfx_api},
+    {config, get_workspace, quit, reload, switch_to_vt},
 };
-use std::{
-    rc::Rc,
-    cell::RefCell,
-    time::Duration
-};
-use chrono::{format::StrftimeItems, Local};
+use std::{cell::RefCell, rc::Rc, time::Duration};
 
 fn setup_status() {
     let time_format: Vec<_> = StrftimeItems::new("%Y-%m-%d %H:%M").collect();
@@ -33,15 +29,30 @@ fn setup_status() {
 }
 
 fn configure() {
-    set_gfx_api(jay_config::video::GfxApi::Vulkan);
-
+    let hostname = hostname::get().unwrap();
     let seat = get_default_seat();
+
+    if hostname == "dtopPC2" {
+        set_gfx_api(jay_config::video::GfxApi::OpenGl);
+        seat.set_keymap(parse_keymap(include_str!("keymap_us.xkb")));
+    } else {
+        set_gfx_api(jay_config::video::GfxApi::Vulkan);
+        seat.set_keymap(parse_keymap(include_str!("keymap_it.xkb")));
+    }
+
+    input_devices().into_iter().for_each(|device: InputDevice| {
+        device.set_natural_scrolling_enabled(true);
+        device.set_tap_enabled(true);
+    });
+
     seat.set_focus_follows_mouse_mode(FocusFollowsMouseMode::True);
     seat.set_repeat_rate(60, 250);
-    seat.set_keymap(parse_keymap(include_str!("keymap.xkb")));
     seat.bind(MOD4 | SHIFT | SYM_q, || quit());
     seat.bind(MOD4 | SHIFT | SYM_r, || {
-        Command::new("notify").arg("Jay").arg("Reloading config").spawn();
+        Command::new("notify")
+            .arg("Jay")
+            .arg("Reloading config")
+            .spawn();
         reload()
     });
     seat.bind(MOD4 | SYM_q, move || {
