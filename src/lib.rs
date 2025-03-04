@@ -1,13 +1,6 @@
 use chrono::{format::StrftimeItems, Local};
 use jay_config::{
-    exec::Command,
-    input::{get_default_seat, input_devices, FocusFollowsMouseMode, InputDevice},
-    keyboard::mods::{Modifiers, ALT, CTRL, MOD4, SHIFT},
-    keyboard::{parse_keymap, syms::*},
-    status::set_status,
-    timer::{duration_until_wall_clock_is_multiple_of, get_timer},
-    video::{on_graphics_initialized, set_gfx_api},
-    {config, get_workspace, quit, reload, switch_to_vt},
+    config, exec::Command, get_workspace, input::{get_default_seat, input_devices, on_new_input_device, FocusFollowsMouseMode, InputDevice}, keyboard::{mods::{Modifiers, ALT, CTRL, MOD4, SHIFT}, parse_keymap, syms::*}, quit, reload, status::set_status, switch_to_vt, timer::{duration_until_wall_clock_is_multiple_of, get_timer}, video::{on_graphics_initialized, set_gfx_api}
 };
 use std::{cell::RefCell, rc::Rc, time::Duration};
 
@@ -40,7 +33,7 @@ fn configure() {
         seat.set_keymap(parse_keymap(include_str!("keymap_it.xkb")));
     }
 
-    input_devices().into_iter().for_each(|device: InputDevice| {
+    on_new_input_device(|device: InputDevice| {
         device.set_natural_scrolling_enabled(true);
         device.set_tap_enabled(true);
     });
